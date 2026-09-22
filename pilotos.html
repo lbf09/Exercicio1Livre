@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paddock Legends - Formula 1 Drivers</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        f1red: '#e10600',
+                        darkbg: '#0a0d14',
+                        cardbg: '#121824',
+                        f1blue: '#1e40af',
+                        f1green: '#00f5d4',
+                        f1yellow: '#ffcc00',
+                        f1sauber: '#52e252'
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #07090e;
+            color: #f3f4f6;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(225, 6, 0, 0.12) 0%, transparent 60%),
+                linear-gradient(to bottom, rgba(10, 13, 20, 0.8), rgba(7, 9, 14, 0.98));
+            background-attachment: fixed;
+        }
+
+        /* Carbon fiber sub-texture */
+        .carbon-texture {
+            background-color: #0f141f;
+            background-image: 
+                radial-gradient(black 15%, transparent 16%),
+                radial-gradient(black 15%, transparent 16%);
+            background-size: 12px 12px;
+            background-position: 0 0, 6px 6px;
+        }
+
+        .neon-glow-red {
+            box-shadow: 0 0 20px rgba(225, 6, 0, 0.35);
+        }
+
+        .neon-border-red:hover {
+            border-color: #e10600;
+            box-shadow: 0 0 25px rgba(225, 6, 0, 0.4);
+        }
+
+        .driver-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .driver-card:hover {
+            transform: translateY(-8px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0d14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #262f40;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e10600;
+        }
+
+        .number-watermark {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            line-height: 0.8;
+            user-select: none;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.08);
+            color: transparent;
+        }
+
+        /* Racing Stripe Pulse */
+        @keyframes pulseStripe {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+        .pulse-stripe {
+            animation: pulseStripe 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-f1red selection:text-white">
+
+    <!-- Top Motorsport Header -->
+    <header class="sticky top-0 z-40 bg-darkbg/90 backdrop-blur-md border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFilters()">
+                <div class="w-10 h-10 bg-f1red rounded-lg flex items-center justify-center shadow-lg shadow-f1red/30 transform -skew-x-12">
+                    <i class="fa-solid font-orbitron font-black text-white text-xl italic">F1</i>
+                </div>
+                <div>
+                    <h1 class="font-orbitron font-extrabold text-xl sm:text-2xl tracking-wider text-white uppercase flex items-center gap-2">
+                        PADDOCK <span class="text-f1red">LEGENDS</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 tracking-widest font-rajdhani uppercase -mt-1 sm:block hidden">
+                        Hub Interativo de Pilotos da Fórmula 1
+                    </p>
+                </div>
+            </div>
+
+            <!-- Header Quick Stats & Tools -->
+            <div class="flex items-center space-x-4">
+                <button id="compareDrawerBtn" onclick="openCompareModal()" class="relative bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-rajdhani font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-scale-balanced text-f1red"></i>
+                    <span>Comparar Pilotos</span>
+                    <span id="compareBadge" class="hidden bg-f1red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1">0</span>
+                </button>
+                <div class="hidden md:flex items-center space-x-2 text-xs font-orbitron text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>GRID 2025/2026</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Banner -->
+    <section class="relative overflow-hidden py-12 lg:py-16 border-b border-slate-800/50 bg-gradient-to-b from-slate-900/50 to-transparent">
+        <div class="absolute inset-0 opacity-20 pointer-events-none carbon-texture"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                
+                <div class="lg:col-span-8 text-center lg:text-left space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-f1red/10 border border-f1red/30 text-f1red text-xs font-orbitron tracking-widest uppercase">
+                        <i class="fa-solid fa-flag-checkered"></i> Titãs do Automobilismo
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl lg:text-6xl font-orbitron font-black text-white tracking-tight uppercase leading-tight">
+                        DOMÍNIO, VELOCIDADE & <span class="text-transparent bg-clip-text bg-gradient-to-r from-f1red via-red-500 to-amber-400">HERANÇA</span>
+                    </h2>
+                    <p class="text-slate-300 font-rajdhani text-lg sm:text-xl max-w-2xl leading-relaxed">
+                        Explore as estatísticas, dados de telemetria, conquistas e trajetórias de cinco dos mais icônicos e talentosos pilotos do ápice do automobilismo mundial.
+                    </p>
+
+                    <!-- Quick Summary Metrics -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 max-w-xl mx-auto lg:mx-0">
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                            <span class="text-slate-400 text-xs font-rajdhani block">Títulos Mundiais</span>
+                            <span class="text-2xl font-orbitron font-extrabold text-amber-400">13</span>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                            <span class="text-slate-400 text-xs font-rajdhani block">Vitórias Acumuladas</span>
+                            <span class="text-2xl font-orbitron font-extrabold text-white">200+</span>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                            <span class="text-slate-400 text-xs font-rajdhani block">Pódios Conquistados</span>
+                            <span class="text-2xl font-orbitron font-extrabold text-f1red">450+</span>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                            <span class="text-slate-400 text-xs font-rajdhani block">Brasil no Grid</span>
+                            <span class="text-2xl font-orbitron font-extrabold text-emerald-400">Bortoleto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Visual Graphic / Speed Gauge -->
+                <div class="lg:col-span-4 flex justify-center">
+                    <div class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full border-4 border-slate-800/80 flex items-center justify-center p-4 bg-slate-900/40 shadow-2xl backdrop-blur-sm">
+                        <div class="absolute inset-0 rounded-full border border-f1red/30 animate-ping opacity-25"></div>
+                        <div class="text-center space-y-2">
+                            <i class="fa-solid fa-tachometer-alt text-5xl text-f1red"></i>
+                            <div class="font-orbitron font-bold text-2xl text-white">F1 TELEMETRY</div>
+                            <div class="text-xs font-rajdhani text-slate-400 tracking-wider">MÁXIMO DESEMPENHO EM PISTA</div>
+                            <div class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full font-mono">LIVE DATA 2025/2026</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter & Search Controls -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+        
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-6 mb-8 shadow-xl backdrop-blur-md">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <!-- Search Box -->
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" oninput="filterDrivers()" placeholder="Buscar por piloto, país ou número..." 
+                        class="w-full pl-11 pr-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-f1red focus:ring-1 focus:ring-f1red font-rajdhani text-lg transition-all">
+                </div>
+
+                <!-- Filters Group -->
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span class="text-xs font-orbitron uppercase text-slate-400 mr-1 hidden sm:inline"><i class="fa-solid fa-filter mr-1"></i> Equipe:</span>
+                    
+                    <button onclick="setTeamFilter('all')" class="team-filter-btn active bg-f1red text-white text-xs font-orbitron px-3.5 py-2 rounded-lg transition-all" data-team="all">
+                        TODAS
+                    </button>
+                    <button onclick="setTeamFilter('Red Bull Racing')" class="team-filter-btn bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-orbitron px-3.5 py-2 rounded-lg transition-all" data-team="Red Bull Racing">
+                        RED BULL
+                    </button>
+                    <button onclick="setTeamFilter('Scuderia Ferrari')" class="team-filter-btn bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-orbitron px-3.5 py-2 rounded-lg transition-all" data-team="Scuderia Ferrari">
+                        FERRARI
+                    </button>
+                    <button onclick="setTeamFilter('Aston Martin')" class="team-filter-btn bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-orbitron px-3.5 py-2 rounded-lg transition-all" data-team="Aston Martin">
+                        ASTON MARTIN
+                    </button>
+                    <button onclick="setTeamFilter('Kick Sauber / Audi')" class="team-filter-btn bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-orbitron px-3.5 py-2 rounded-lg transition-all" data-team="Kick Sauber / Audi">
+                        SAUBER
+                    </button>
+                </div>
+
+                <!-- Sort Selector -->
+                <div class="flex items-center gap-2 border-t lg:border-t-0 border-slate-800 pt-3 lg:pt-0">
+                    <label for="sortBy" class="text-xs font-orbitron text-slate-400 whitespace-nowrap"><i class="fa-solid fa-arrow-down-wide-short mr-1"></i> Ordem:</label>
+                    <select id="sortBy" onchange="sortDrivers()" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs font-orbitron py-2.5 px-3 rounded-lg focus:outline-none focus:border-f1red">
+                        <option value="default">Padrão</option>
+                        <option value="titles">Mais Títulos</option>
+                        <option value="wins">Mais Vitórias</option>
+                        <option value="number">Número do Carro</option>
+                        <option value="name">Nome (A-Z)</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Driver Cards Grid -->
+        <div id="driversGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <!-- Cards will be dynamically injected / rendered here -->
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="noResults" class="hidden text-center py-16 bg-slate-900/50 rounded-2xl border border-slate-800 my-8">
+            <i class="fa-solid fa-car-burst text-5xl text-slate-600 mb-4"></i>
+            <h3 class="text-xl font-orbitron font-bold text-white mb-2">NENHUM PILOTO ENCONTRADO</h3>
+            <p class="text-slate-400 font-rajdhani">Ajuste os filtros de busca para visualizar os competidores.</p>
+            <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-f1red text-white font-orbitron text-xs rounded-lg hover:bg-red-700 transition">
+                Resetar Filtros
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Driver Comparison Modal Drawer -->
+    <div id="compareModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
+            <!-- Close Button -->
+            <button onclick="closeCompareModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-9 h-9 rounded-full flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="font-orbitron font-bold text-xl sm:text-2xl text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-scale-balanced text-f1red"></i> TELEMETRIA COMPARATIVA
+            </h3>
+            <p class="text-slate-400 font-rajdhani text-sm mb-6">Compare o desempenho lado a lado dos pilotos selecionados.</p>
+
+            <div id="compareContent" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Driver Full Details Modal -->
+    <div id="driverModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl my-8 overflow-hidden relative shadow-2xl">
+            
+            <!-- Modal Header Banner -->
+            <div id="modalHeaderBg" class="relative h-44 sm:h-52 p-6 flex flex-col justify-between overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent z-10"></div>
+                <div class="absolute right-4 bottom-0 font-orbitron font-black text-8xl sm:text-9xl text-white/10 select-none z-0" id="modalWatermark">#00</div>
+                
+                <button onclick="closeDriverModal()" class="absolute top-4 right-4 z-20 text-slate-300 hover:text-white bg-black/50 hover:bg-black/80 w-9 h-9 rounded-full flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+                <div class="relative z-20 mt-auto">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span id="modalCountryFlag" class="text-xl"></span>
+                        <span id="modalTeam" class="text-xs font-orbitron tracking-widest text-slate-300 uppercase bg-black/60 px-2.5 py-1 rounded border border-white/10"></span>
+                    </div>
+                    <h2 id="modalName" class="text-2xl sm:text-4xl font-orbitron font-black text-white tracking-wide uppercase"></h2>
+                </div>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="p-6 space-y-6">
+                
+                <!-- Main Key Metrics Row -->
+                <div class="grid grid-cols-3 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-center">
+                    <div>
+                        <span class="text-slate-400 text-xs font-rajdhani uppercase block">Títulos Mundiais</span>
+                        <span id="modalTitles" class="text-xl sm:text-2xl font-orbitron font-bold text-amber-400"></span>
+                    </div>
+                    <div class="border-x border-slate-800">
+                        <span class="text-slate-400 text-xs font-rajdhani uppercase block">Vitórias</span>
+                        <span id="modalWins" class="text-xl sm:text-2xl font-orbitron font-bold text-f1red"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-xs font-rajdhani uppercase block">Pódios</span>
+                        <span id="modalPodiums" class="text-xl sm:text-2xl font-orbitron font-bold text-white"></span>
+                    </div>
+                </div>
+
+                <!-- Driver Quote -->
+                <div class="bg-slate-800/40 border-l-4 border-f1red p-4 rounded-r-xl italic text-slate-300 font-rajdhani text-base sm:text-lg">
+                    "<span id="modalQuote"></span>"
+                </div>
+
+                <!-- Career Highlights & Bio -->
+                <div class="space-y-2">
+                    <h4 class="font-orbitron font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-f1red"></i> Trajetória e Perfil
+                    </h4>
+                    <p id="modalBio" class="text-slate-300 font-rajdhani leading-relaxed text-sm sm:text-base"></p>
+                </div>
+
+                <!-- Skill Ratings / Attributes -->
+                <div class="space-y-3 pt-2">
+                    <h4 class="font-orbitron font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-chart-radar text-f1red"></i> Atributos de Corrida
+                    </h4>
+                    
+                    <div class="space-y-2 text-xs font-orbitron">
+                        <div>
+                            <div class="flex justify-between text-slate-300 mb-1">
+                                <span>Ritmo de Corrida (Race Pace)</span>
+                                <span id="ratingPaceVal" class="text-f1red font-bold"></span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                                <div id="ratingPaceBar" class="bg-f1red h-full transition-all duration-1000"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-slate-300 mb-1">
+                                <span>Qualificação (Ritmo de Classificação)</span>
+                                <span id="ratingQualiVal" class="text-amber-400 font-bold"></span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                                <div id="ratingQualiBar" class="bg-amber-400 h-full transition-all duration-1000"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-slate-300 mb-1">
+                                <span>Ultrapassagens & Agressividade</span>
+                                <span id="ratingOvertakeVal" class="text-emerald-400 font-bold"></span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                                <div id="ratingOvertakeBar" class="bg-emerald-400 h-full transition-all duration-1000"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer Info -->
+                <div class="pt-4 border-t border-slate-800 flex flex-wrap justify-between items-center text-xs font-rajdhani text-slate-400">
+                    <div>Estreia na F1: <span id="modalDebut" class="text-white font-semibold"></span></div>
+                    <div>Capacetes/Número: <span id="modalNumber" class="text-f1red font-bold font-orbitron"></span></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Motorsport Styled Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 mt-12 py-8 text-slate-400 text-xs font-rajdhani">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <div class="flex items-center space-x-3">
+                <div class="w-6 h-6 bg-f1red rounded flex items-center justify-center font-orbitron text-white text-xs font-black">
+                    F1
+                </div>
+                <span class="font-orbitron font-bold text-slate-200">PADDOCK LEGENDS HUB</span>
+            </div>
+
+            <p class="text-center md:text-left">
+                Plataforma de estatísticas interativas sobre pilotos de Fórmula 1. Desenvolvido para entusiastas do automobilismo.
+            </p>
+
+            <div class="flex items-center space-x-4">
+                <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-f1red transition flex items-center gap-1 font-orbitron">
+                    <i class="fa-solid fa-arrow-up"></i> Topo
+                </button>
+            </div>
+
+        </div>
+    </footer>
+
+    <script>
+        // Driver Database Object Array
+        const driversData = [
+            {
+                id: 'verstappen',
+                name: 'Max Verstappen',
+                number: 1,
+                country: 'Holanda',
+                flag: '🇳🇱',
+                team: 'Red Bull Racing',
+                titles: 4,
+                wins: 63,
+                podiums: 111,
+                debut: '2015',
+                accentColor: '#1e40af', // Blue / Red Bull
+                secondaryColor: '#ef4444',
+                quote: 'Eu não estou aqui para ser quarto ou quinto. Estou aqui para vencer.',
+                bio: 'Filho do ex-piloto Jos Verstappen, Max tornou-se o piloto mais jovem a estrear e vencer uma corrida na História da Fórmula 1. Conhecido por seu estilo de pilotagem agressivo e implacável, dominou a era do efeito solo com a Red Bull Racing, estabelecendo recordes históricos de vitórias consecutivas.',
+                ratings: { pace: 99, quali: 97, overtake: 98 },
+                avatarGradient: 'from-blue-900 via-slate-900 to-red-950',
+                helmetIcon: 'fa-helmet-safety'
+            },
+            {
+                id: 'hamilton',
+                name: 'Lewis Hamilton',
+                number: 44,
+                country: 'Reino Unido',
+                flag: '🇬🇧',
+                team: 'Scuderia Ferrari',
+                titles: 7,
+                wins: 105,
+                podiums: 201,
+                debut: '2007',
+                accentColor: '#dc2626', // Ferrari Crimson Red
+                secondaryColor: '#eab308',
+                quote: 'Ainda assim, nós nos levantamos. O limite é apenas a nossa imaginação.',
+                bio: 'Sete vezes campeão mundial de Fórmula 1, Lewis Hamilton é o detentor dos recordes de maior número de pole positions e vitórias em GPs na história da categoria. Mestre absoluto em pistas molhadas e gestão de pneus, transferiu-se para a lendária Scuderia Ferrari trazendo toda sua bagagem histórica.',
+                ratings: { pace: 98, quali: 99, overtake: 96 },
+                avatarGradient: 'from-red-950 via-slate-900 to-amber-950',
+                helmetIcon: 'fa-helmet-safety'
+            },
+            {
+                id: 'bortoleto',
+                name: 'Gabriel Bortoleto',
+                number: 5,
+                country: 'Brasil',
+                flag: '🇧🇷',
+                team: 'Kick Sauber / Audi',
+                titles: 0,
+                wins: 0,
+                podiums: 0,
+                debut: '2025',
+                accentColor: '#10b981', // Emerald / Neon Green
+                secondaryColor: '#06b6d4',
+                quote: 'Representar a bandeira brasileira no grid da F1 é a realização de um sonho de vida.',
+                bio: 'Uma das maiores revelações do automobilismo recente. Campeão da Fórmula 3 (2023) e Campeão da Fórmula 2 (2024) em anos de estreia seguidos, Gabriel Bortoleto traz o Brasil de volta ao grid titular da Fórmula 1 no projeto da Sauber/Audi com enorme expectativa e talento natural indiscutível.',
+                ratings: { pace: 91, quali: 92, overtake: 93 },
+                avatarGradient: 'from-emerald-950 via-slate-900 to-yellow-950',
+                helmetIcon: 'fa-helmet-safety'
+            },
+            {
+                id: 'alonso',
+                name: 'Fernando Alonso',
+                number: 14,
+                country: 'Espanha',
+                flag: '🇪🇸',
+                team: 'Aston Martin',
+                titles: 2,
+                wins: 32,
+                podiums: 106,
+                debut: '2001',
+                accentColor: '#059669', // Aston Green
+                secondaryColor: '#84cc16',
+                quote: 'Se você me der um carro com 95% do ritmo, eu darei os outros 5% que faltam.',
+                bio: 'Bicampeão mundial (2005 e 2006 ao encerrar a hegemonia de Michael Schumacher), Alonso é amplamente considerado um dos pilotos mais completos e estrategistas da história. Sua longevidade, largadas espetaculares e leitura de corrida permanecem como referência absoluta no grid.',
+                ratings: { pace: 96, quali: 94, overtake: 97 },
+                avatarGradient: 'from-emerald-900 via-slate-900 to-lime-950',
+                helmetIcon: 'fa-helmet-safety'
+            },
+            {
+                id: 'leclerc',
+                name: 'Charles Leclerc',
+                number: 16,
+                country: 'Mônaco',
+                flag: '🇲🇨',
+                team: 'Scuderia Ferrari',
+                titles: 0,
+                wins: 8,
+                podiums: 42,
+                debut: '2018',
+                accentColor: '#ef4444', // Ferrari Red
+                secondaryColor: '#ffffff',
+                quote: 'Correr pela Ferrari é um privilégio e uma responsabilidade que carrego com orgulho.',
+                bio: 'Conhecido como "Il Predestinato" pela torcida ferrarista, Leclerc é um gênio da volta voadora em classificações. Campeão dominante da F2 em 2017, tornou-se o líder técnico e emocional da Ferrari com vitórias marcantes em Monza, Mônaco e Spa-Francorchamps.',
+                ratings: { pace: 95, quali: 99, overtake: 94 },
+                avatarGradient: 'from-red-900 via-slate-900 to-slate-950',
+                helmetIcon: 'fa-helmet-safety'
+            }
+        ];
+
+        let selectedTeam = 'all';
+        let compareList = [];
+
+        // Render Driver Cards
+        function renderDrivers(drivers) {
+            const grid = document.getElementById('driversGrid');
+            const noResults = document.getElementById('noResults');
+            grid.innerHTML = '';
+
+            if (drivers.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            drivers.forEach(driver => {
+                const isComparing = compareList.includes(driver.id);
+                
+                const cardHTML = `
+                    <div class="driver-card bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden relative shadow-xl hover:border-slate-700 flex flex-col justify-between group">
+                        
+                        <!-- Watermark Car Number -->
+                        <div class="absolute right-3 top-2 number-watermark text-7xl font-black pointer-events-none group-hover:opacity-20 transition-opacity opacity-10">
+                            #${driver.number}
+                        </div>
+
+                        <!-- Card Top Accent Stripe -->
+                        <div class="h-1.5 w-full" style="background-color: ${driver.accentColor}"></div>
+
+                        <div class="p-6 relative z-10 flex-grow flex flex-col justify-between">
+                            
+                            <!-- Header Info -->
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-xs font-orbitron px-2.5 py-1 rounded bg-slate-950/80 border border-slate-800 text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span>${driver.flag}</span>
+                                        <span>${driver.team}</span>
+                                    </span>
+                                    <span class="font-orbitron font-extrabold text-2xl text-white" style="color: ${driver.accentColor}">
+                                        #${driver.number}
+                                    </span>
+                                </div>
+
+                                <h3 class="text-2xl font-orbitron font-black text-white group-hover:text-f1red transition-colors tracking-wide mb-1">
+                                    ${driver.name}
+                                </h3>
+                                <p class="text-xs text-slate-400 font-rajdhani uppercase tracking-widest mb-6">
+                                    Estreia F1: ${driver.debut}
+                                </p>
+                            </div>
+
+                            <!-- Styled Driver Graphic Frame -->
+                            <div class="my-4 py-6 px-4 bg-gradient-to-br ${driver.avatarGradient} rounded-xl border border-slate-800/80 flex items-center justify-center relative overflow-hidden">
+                                <div class="text-center relative z-10">
+                                    <i class="fa-solid fa-helmet-safety text-5xl text-white/90 drop-shadow-lg mb-2"></i>
+                                    <div class="text-xs font-orbitron text-slate-300 tracking-widest uppercase">
+                                        ${driver.country}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Driver Quick Stats Row -->
+                            <div class="grid grid-cols-3 gap-2 bg-slate-950/80 p-3 rounded-xl border border-slate-800/60 text-center my-4">
+                                <div>
+                                    <div class="text-[10px] font-rajdhani text-slate-400 uppercase">Títulos</div>
+                                    <div class="font-orbitron font-bold text-amber-400 text-lg">${driver.titles}</div>
+                                </div>
+                                <div class="border-x border-slate-800">
+                                    <div class="text-[10px] font-rajdhani text-slate-400 uppercase">Vitórias</div>
+                                    <div class="font-orbitron font-bold text-f1red text-lg">${driver.wins}</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-rajdhani text-slate-400 uppercase">Pódios</div>
+                                    <div class="font-orbitron font-bold text-white text-lg">${driver.podiums}</div>
+                                </div>
+                            </div>
+
+                            <!-- Actions Footer -->
+                            <div class="flex items-center gap-2 pt-2">
+                                <button onclick="openDriverModal('${driver.id}')" class="flex-1 bg-slate-800 hover:bg-f1red text-white text-xs font-orbitron font-bold py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md">
+                                    <i class="fa-solid fa-circle-info"></i> VER PERFIL
+                                </button>
+                                
+                                <button onclick="toggleCompare('${driver.id}')" class="p-2.5 rounded-xl border ${isComparing ? 'bg-f1red border-f1red text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'} transition-all" title="Comparar Piloto">
+                                    <i class="fa-solid fa-scale-balanced text-sm"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += cardHTML;
+            });
+        }
+
+        // Search & Filter Logic
+        function filterDrivers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = driversData.filter(driver => {
+                const matchesSearch = driver.name.toLowerCase().includes(query) ||
+                                      driver.country.toLowerCase().includes(query) ||
+                                      driver.team.toLowerCase().includes(query) ||
+                                      driver.number.toString().includes(query);
+                
+                const matchesTeam = selectedTeam === 'all' || driver.team === selectedTeam;
+
+                return matchesSearch && matchesTeam;
+            });
+
+            const sortBy = document.getElementById('sortBy').value;
+            filtered = sortData(filtered, sortBy);
+
+            renderDrivers(filtered);
+        }
+
+        function setTeamFilter(team) {
+            selectedTeam = team;
+            
+            document.querySelectorAll('.team-filter-btn').forEach(btn => {
+                if (btn.dataset.team === team) {
+                    btn.classList.add('bg-f1red', 'text-white');
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                } else {
+                    btn.classList.remove('bg-f1red', 'text-white');
+                    btn.classList.add('bg-slate-800', 'text-slate-300');
+                }
+            });
+
+            filterDrivers();
+        }
+
+        function sortDrivers() {
+            filterDrivers();
+        }
+
+        function sortData(data, sortBy) {
+            const sorted = [...data];
+            if (sortBy === 'titles') {
+                return sorted.sort((a, b) => b.titles - a.titles);
+            } else if (sortBy === 'wins') {
+                return sorted.sort((a, b) => b.wins - a.wins);
+            } else if (sortBy === 'number') {
+                return sorted.sort((a, b) => a.number - b.number);
+            } else if (sortBy === 'name') {
+                return sorted.sort((a, b) => a.name.localeCompare(b.name));
+            }
+            return sorted;
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('sortBy').value = 'default';
+            setTeamFilter('all');
+        }
+
+        // Comparison Toggle Logic
+        function toggleCompare(driverId) {
+            const index = compareList.indexOf(driverId);
+            if (index > -1) {
+                compareList.splice(index, 1);
+            } else {
+                if (compareList.length >= 2) {
+                    compareList.shift(); // keep max 2 drivers
+                }
+                compareList.push(driverId);
+            }
+            updateCompareBadge();
+            filterDrivers();
+        }
+
+        function updateCompareBadge() {
+            const badge = document.getElementById('compareBadge');
+            badge.innerText = compareList.length;
+            if (compareList.length > 0) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function openCompareModal() {
+            if (compareList.length === 0) {
+                // Show temporary notice message in compare modal content
+                document.getElementById('compareContent').innerHTML = `
+                    <div class="col-span-2 text-center py-12 text-slate-400 font-rajdhani">
+                        <i class="fa-solid fa-circle-exclamation text-3xl text-f1red mb-2"></i>
+                        <p class="text-lg">Selecione pelo menos 1 ou 2 pilotos clicando no ícone de balança (<i class="fa-solid fa-scale-balanced"></i>) nos cartões para realizar a comparação.</p>
+                    </div>
+                `;
+            } else {
+                renderCompareData();
+            }
+            document.getElementById('compareModal').classList.remove('hidden');
+        }
+
+        function closeCompareModal() {
+            document.getElementById('compareModal').classList.add('hidden');
+        }
+
+        function renderCompareData() {
+            const container = document.getElementById('compareContent');
+            container.innerHTML = '';
+
+            const selectedDrivers = driversData.filter(d => compareList.includes(d.id));
+
+            selectedDrivers.forEach(driver => {
+                const compCard = `
+                    <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <div>
+                                <span class="text-xs font-orbitron text-slate-400">${driver.flag} ${driver.team}</span>
+                                <h4 class="text-xl font-orbitron font-bold text-white">${driver.name}</h4>
+                            </div>
+                            <span class="font-orbitron font-black text-2xl text-f1red">#${driver.number}</span>
+                        </div>
+
+                        <div class="space-y-3 font-rajdhani text-sm">
+                            <div class="flex justify-between py-1 border-b border-slate-900">
+                                <span class="text-slate-400">Títulos Mundiais:</span>
+                                <span class="font-bold text-amber-400 font-orbitron">${driver.titles}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-900">
+                                <span class="text-slate-400">Vitórias em GPs:</span>
+                                <span class="font-bold text-f1red font-orbitron">${driver.wins}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-900">
+                                <span class="text-slate-400">Pódios:</span>
+                                <span class="font-bold text-white font-orbitron">${driver.podiums}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-900">
+                                <span class="text-slate-400">Ano de Estreia:</span>
+                                <span class="font-bold text-slate-200">${driver.debut}</span>
+                            </div>
+
+                            <div class="pt-2 space-y-2">
+                                <div class="text-xs font-orbitron text-slate-400">Ritmo de Corrida (${driver.ratings.pace})</div>
+                                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-f1red h-full" style="width: ${driver.ratings.pace}%"></div>
+                                </div>
+                                <div class="text-xs font-orbitron text-slate-400">Qualificação (${driver.ratings.quali})</div>
+                                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-amber-400 h-full" style="width: ${driver.ratings.quali}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += compCard;
+            });
+        }
+
+        // Driver Detail Modal Logic
+        function openDriverModal(driverId) {
+            const driver = driversData.find(d => d.id === driverId);
+            if (!driver) return;
+
+            document.getElementById('modalName').innerText = driver.name;
+            document.getElementById('modalTeam').innerText = driver.team;
+            document.getElementById('modalCountryFlag').innerText = driver.flag;
+            document.getElementById('modalWatermark').innerText = `#${driver.number}`;
+            document.getElementById('modalTitles').innerText = driver.titles;
+            document.getElementById('modalWins').innerText = driver.wins;
+            document.getElementById('modalPodiums').innerText = driver.podiums;
+            document.getElementById('modalQuote').innerText = driver.quote;
+            document.getElementById('modalBio').innerText = driver.bio;
+            document.getElementById('modalDebut').innerText = driver.debut;
+            document.getElementById('modalNumber').innerText = `#${driver.number}`;
+
+            // Ratings setup
+            document.getElementById('ratingPaceVal').innerText = `${driver.ratings.pace}/100`;
+            document.getElementById('ratingPaceBar').style.width = `${driver.ratings.pace}%`;
+
+            document.getElementById('ratingQualiVal').innerText = `${driver.ratings.quali}/100`;
+            document.getElementById('ratingQualiBar').style.width = `${driver.ratings.quali}%`;
+
+            document.getElementById('ratingOvertakeVal').innerText = `${driver.ratings.overtake}/100`;
+            document.getElementById('ratingOvertakeBar').style.width = `${driver.ratings.overtake}%`;
+
+            // Modal Header dynamic background color
+            document.getElementById('modalHeaderBg').style.backgroundColor = driver.accentColor;
+
+            document.getElementById('driverModal').classList.remove('hidden');
+        }
+
+        function closeDriverModal() {
+            document.getElementById('driverModal').classList.add('hidden');
+        }
+
+        // Close Modals on click outside
+        window.onclick = function(event) {
+            const driverModal = document.getElementById('driverModal');
+            const compareModal = document.getElementById('compareModal');
+            if (event.target === driverModal) {
+                closeDriverModal();
+            }
+            if (event.target === compareModal) {
+                closeCompareModal();
+            }
+        };
+
+        // Initial Load
+        window.onload = function() {
+            renderDrivers(driversData);
+        };
+    </script>
+</body>
+</html>
