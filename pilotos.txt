@@ -1,5 +1,1 @@
-Max Verstappen
-Lewis Hamilton
-Gabriel Bortoleto
-Fernando Alonso
-Charles Leclerc
+O site Paddock Legends é um portal web responsivo em estilo dark mode dedicado à Fórmula 1, apresentando os pilotos Max Verstappen, Lewis Hamilton, Gabriel Bortoleto, Fernando Alonso e Charles Leclerc com uma estética moderna inspirada em telemetria e artes visuais de corrida. A plataforma conta com cartões interativos organizados com as cores oficiais de cada equipe, exibindo estatísticas em tempo real como títulos mundiais, vitórias, pódios e ano de estreia, além de oferecer filtros avançados de busca, modais de biografia com gráfico de habilidades e uma ferramenta de comparação direta de desempenho entre dois pilotos lado a lado.
